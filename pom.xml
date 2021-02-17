@@ -40,16 +40,16 @@
   <dependencies>
 
         <!-- Hibernate ORM specific dependencies -->
-    <dependency>
+    <!-- <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-hibernate-orm-panache</artifactId>
-    </dependency>
+    </dependency> -->
 
     <!-- JDBC driver dependencies -->
-    <dependency>
+    <!-- <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-jdbc-postgresql</artifactId>
-    </dependency>
+    </dependency> -->
     
     <dependency>
       <groupId>io.quarkus</groupId>

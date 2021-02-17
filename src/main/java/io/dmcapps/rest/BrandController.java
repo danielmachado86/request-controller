@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
 
 import org.jboss.logging.Logger;
@@ -36,11 +37,11 @@ public class BrandController {
     Emitter<Brand> emitter;
 
     @POST
-    public Response addBrand(String brandRequest) throws InvalidProtocolBufferException {
-        Builder pBuilder = Brand.newBuilder();
-        JsonFormat.parser().merge(brandRequest, pBuilder);
-        pBuilder.setStatus(io.dmcapps.proto.catalog.Brand.Status.PENDING);
-        Brand brand = pBuilder.build();
+    public Response addBrand(String brandRequest) {
+        Builder brandBuilder = Brand.newBuilder();
+        convertJSONToProtobuf(brandRequest, brandBuilder);
+        brandBuilder.setStatus(io.dmcapps.proto.catalog.Brand.Status.PENDING);
+        Brand brand = brandBuilder.build();
         if (brand.getName().isEmpty()) {
             return Response.status(Status.BAD_REQUEST).build();
         }
@@ -51,10 +52,10 @@ public class BrandController {
 
     @PUT
     @Path("/{name}")
-    public Response updateBrand(String brandRequest, String name) throws InvalidProtocolBufferException {
-        Builder pBuilder = Brand.newBuilder();
-        JsonFormat.parser().merge(brandRequest, pBuilder);
-        Brand brand = pBuilder
+    public Response updateBrand(String brandRequest, String name) {
+        Builder brandBuilder = Brand.newBuilder();
+        convertJSONToProtobuf(brandRequest, brandBuilder);
+        Brand brand = brandBuilder
             .setName(name)
             .setStatus(io.dmcapps.proto.catalog.Brand.Status.PENDING)
             .build();
@@ -69,6 +70,15 @@ public class BrandController {
         LOGGER.infof("Deleting brand %s", name);
         emitter.send(KafkaRecord.of(name, null));
         return Response.accepted().build();
+    }
+
+    private void convertJSONToProtobuf(String json, Message.Builder builder) {
+        try {
+            JsonFormat.parser().merge(json, builder);
+        } catch (InvalidProtocolBufferException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
 }

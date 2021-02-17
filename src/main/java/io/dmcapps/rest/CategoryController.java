@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
 
 import org.jboss.logging.Logger;
@@ -36,11 +37,11 @@ public class CategoryController {
     Emitter<Category> emitter;
 
     @POST
-    public Response addCategory(String categoryRequest) throws InvalidProtocolBufferException {
-        Builder pBuilder = Category.newBuilder();
-        JsonFormat.parser().merge(categoryRequest, pBuilder);
-        pBuilder.setStatus(io.dmcapps.proto.catalog.Category.Status.PENDING);
-        Category category = pBuilder.build();
+    public Response addCategory(String categoryRequest) {
+        Builder categoryBuilder = Category.newBuilder();
+        convertJSONToProtobuf(categoryRequest, categoryBuilder);
+        categoryBuilder.setStatus(io.dmcapps.proto.catalog.Category.Status.PENDING);
+        Category category = categoryBuilder.build();
         if (category.getName().isEmpty() || category.getParent().isEmpty()) {
             return Response.status(Status.BAD_REQUEST).build();
         }
@@ -51,10 +52,10 @@ public class CategoryController {
 
     @PUT
     @Path("/parent/{parent}/name/{name}")
-    public Response updateCategory(String categoryRequest, String parent, String name) throws InvalidProtocolBufferException {
-        Builder pBuilder = Category.newBuilder();
-        JsonFormat.parser().merge(categoryRequest, pBuilder);
-        Category category = pBuilder
+    public Response updateCategory(String categoryRequest, String parent, String name) {
+        Builder categoryBuilder = Category.newBuilder();
+        convertJSONToProtobuf(categoryRequest, categoryBuilder);
+        Category category = categoryBuilder
             .setParent(parent)
             .setName(name)
             .setStatus(io.dmcapps.proto.catalog.Category.Status.PENDING)
@@ -72,4 +73,12 @@ public class CategoryController {
         return Response.accepted().build();
     }
 
+    private void convertJSONToProtobuf(String json, Message.Builder builder) {
+        try {
+            JsonFormat.parser().merge(json, builder);
+        } catch (InvalidProtocolBufferException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 }
